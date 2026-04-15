@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import useAuthStore from '../../store/authStore';
 
-// Validation Schemas
+// Validation Schemas for checking the fields
 const emailSchema = z.object({
   email: z.string().email("Invalid email address"),
 });
