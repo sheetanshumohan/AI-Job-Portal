@@ -31,7 +31,7 @@ const useAuthStore = create(
         }
       },
 
-      // Login action just for checking purpose
+      // Login action just for checking purpose for checking
       login: async (email, password, role, rememberMe) => {
         set({ isLoading: true });
         try {
