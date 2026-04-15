@@ -149,22 +149,21 @@ export const login = async (req, res) => {
       return res.status(403).json({ message: `Access denied. Registered as ${user.role}.` });
     }
 
-    // If user is not verified, send a new OTP
-    if (!user.isVerified) {
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      user.otp = otp;
-      user.otpExpires = Date.now() + 15 * 60 * 1000;
-      await user.save();
+    // Generate a new OTP for every login (2FA)
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.otp = otp;
+    user.isVerified = false; // Reset for 2FA on every login
+    user.otpExpires = Date.now() + 15 * 60 * 1000;
+    await user.save();
 
-      try {
-        await sendEmail({
-          email: user.email,
-          subject: 'Verify your account',
-          html: `<h1>Your OTP is: ${otp}</h1><p>It expires in 15 minutes.</p>`
-        });
-      } catch (emailError) {
-        console.error("Email send failed during login:", emailError.message);
-      }
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: 'Your Login Verification Code',
+        html: `<h1>Your Verification Code is: ${otp}</h1><p>It expires in 15 minutes.</p>`
+      });
+    } catch (emailError) {
+      console.error("Email send failed during login:", emailError.message);
     }
 
     const token = generateTokenAndSetCookie(res, user._id);
@@ -180,7 +179,7 @@ export const login = async (req, res) => {
         user: userResponse
       },
       accessToken: token,
-      needsVerification: !user.isVerified
+      needsVerification: true
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -354,7 +353,8 @@ export const checkAuth = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: { user: userResponse }
+      data: { user: userResponse },
+      needsVerification: !user.isVerified
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
