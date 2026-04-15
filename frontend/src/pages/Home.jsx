@@ -43,7 +43,7 @@ const FAQItem = ({ question, answer }) => {
 const Home = () => {
   return (
     <div className="min-h-screen bg-background relative selection:bg-brand-500/30 selection:text-brand-200 scroll-smooth pb-0">
-      
+
       {/* Global Background Ambient Orbs */}
       <div className="absolute top-0 left-[-10%] w-[50%] h-[500px] bg-brand-600/20 rounded-full blur-[150px] pointer-events-none" />
       <div className="absolute top-[20%] right-[-10%] w-[40%] h-[400px] bg-purple-600/20 rounded-full blur-[150px] pointer-events-none" />
@@ -51,14 +51,14 @@ const Home = () => {
 
       {/* 1. HERO SECTION */}
       <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col items-center text-center z-10">
-        <motion.div 
+        <motion.div
           custom={1} initial="hidden" animate="visible" variants={fadeUp}
           className="inline-flex flex-col items-center gap-2 px-5 py-2.5 rounded-full glass border-brand-500/30 text-brand-300 text-sm font-medium mb-8 cursor-default"
         >
           <div className="flex items-center gap-2"><Sparkles className="h-4 w-4" /> <span>Next Gen AI Hiring</span></div>
         </motion.div>
 
-        <motion.h1 
+        <motion.h1
           custom={2} initial="hidden" animate="visible" variants={fadeUp}
           className="text-5xl md:text-7xl lg:text-8xl font-heading font-extrabold tracking-tight mb-8 leading-[1.1] max-w-5xl"
         >
@@ -68,14 +68,14 @@ const Home = () => {
           </span>
         </motion.h1>
 
-        <motion.p 
+        <motion.p
           custom={3} initial="hidden" animate="visible" variants={fadeUp}
           className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed"
         >
           Upload your resume and let our proprietary AI NLP engine connect you instantly with top-tier companies looking for your exact skill set. No more endless searching.
         </motion.p>
 
-        <motion.div 
+        <motion.div
           custom={4} initial="hidden" animate="visible" variants={fadeUp}
           className="flex flex-col sm:flex-row items-center justify-center gap-6 w-full sm:w-auto"
         >
@@ -91,7 +91,7 @@ const Home = () => {
       {/* 2. STATS SECTION */}
       <section className="py-10 border-y border-slate-800/50 bg-surface/20 backdrop-blur-sm relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div 
+          <motion.div
             initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={staggerContainer}
             className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center"
           >
@@ -132,7 +132,7 @@ const Home = () => {
             { role: 'DevOps Engineer', company: 'Amazon', type: 'Seattle', salary: '$130k - $180k' },
             { role: 'Data Engineer', company: 'Meta', type: 'Remote', salary: '$150k - $200k' },
           ].map((job, i) => (
-            <motion.div 
+            <motion.div
               key={i} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
               className="glass p-6 rounded-2xl border border-slate-700/50 hover:border-brand-500/50 transition-all hover:shadow-[0_0_20px_rgba(79,70,229,0.15)] group"
             >
@@ -231,11 +231,11 @@ const Home = () => {
             <h2 className="text-3xl md:text-5xl font-heading font-bold mb-4">Frequently Asked Questions</h2>
             <p className="text-slate-400">Everything you need to know about our AI hiring platform.</p>
           </div>
-          
+
           <div className="space-y-4">
-             <FAQItem question="How does the AI Resume Analyzer work?" answer="Our NLP algorithms extract critical data points including hard skills, soft skills, and career progression, assigning a competence vector that is then mathematically matched against job description vectors from employers." />
-             <FAQItem question="Is this platform free for students?" answer="Yes! Core access and the AI resume analysis tool are completely free for all candidates. Premium features for deep interview coaching are available via subscription." />
-             <FAQItem question="Are recruiters actively using this?" answer="Absolutely. Over 850 active recruiters utilize our AI Dashboard daily to find candidates that exactly match their obscure requirements without manually filtering." />
+            <FAQItem question="How does the AI Resume Analyzer work?" answer="Our NLP algorithms extract critical data points including hard skills, soft skills, and career progression, assigning a competence vector that is then mathematically matched against job description vectors from employers." />
+            <FAQItem question="Is this platform free for students?" answer="Yes! Core access and the AI resume analysis tool are completely free for all candidates. Premium features for deep interview coaching are available via subscription." />
+            <FAQItem question="Are recruiters actively using this?" answer="Absolutely. Over 850 active recruiters utilize our AI Dashboard daily to find candidates that exactly match their obscure requirements without manually filtering." />
           </div>
         </div>
       </section>
@@ -247,9 +247,9 @@ const Home = () => {
           <h2 className="text-4xl md:text-6xl font-heading font-bold mb-6">Stay ahead of the curve</h2>
           <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">Subscribe to our newsletter for the latest AI-curated job alerts, career tips, and tech industry insights.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto">
-            <input 
-              type="email" 
-              placeholder="Enter your email address" 
+            <input
+              type="email"
+              placeholder="Enter your email address"
               className="flex-1 bg-surface/50 border border-slate-700 rounded-xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-brand-500 text-white placeholder-slate-400"
             />
             <button className="px-8 py-4 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-lg transition-transform hover:scale-105 shadow-[0_0_20px_rgba(79,70,229,0.5)]">

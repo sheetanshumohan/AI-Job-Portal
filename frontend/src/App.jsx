@@ -43,10 +43,10 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     // If not logged in, force them to login
     return <Navigate to="/login" replace />;
   }
-  
+
   if (allowedRoles && !allowedRoles.includes(user?.role)) {
     // If they are logged in but wrong role (e.g. student trying to access recruiter dashboard)
-    return <Navigate to="/" replace />; 
+    return <Navigate to="/" replace />;
   }
   return children;
 };
@@ -75,7 +75,7 @@ function App() {
         <Routes>
           {/* Public / Landing Pages */}
           <Route path="/" element={<Home />} />
-          
+
           {/* Auth Pages (Protected from logged-in users) */}
           <Route path="/login" element={
             <PublicRoute>
@@ -92,7 +92,7 @@ function App() {
               <ForgotPassword />
             </PublicRoute>
           } />
-          
+
           {/* Dashboard Pages (Protected from logged-out users & strictly role-based) */}
           <Route path="/recruiter/dashboard" element={
             <ProtectedRoute allowedRoles={['recruiter']}>
@@ -142,12 +142,12 @@ function App() {
               <RecruiterNotifications />
             </ProtectedRoute>
           } />
-          
+
           <Route path="/student/dashboard" element={
             <ProtectedRoute allowedRoles={['student']}>
               <StudentDashboard />
             </ProtectedRoute>
-          } /> 
+          } />
 
           <Route path="/student/profile" element={
             <ProtectedRoute allowedRoles={['student']}>

@@ -14,10 +14,29 @@ import notificationRoutes from './routes/notification.routes.js';
 const app = express();
 
 // Middlewares
-app.use(helmet());
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'https://ai-job-portal-omega-seven.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:5173'
+].filter(Boolean);
+
 app.use(cors({
-  origin: [process.env.FRONTEND_URL, 'http://localhost:3000', 'http://localhost:5173'].filter(Boolean),
-  credentials: true
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+}));
+
+app.use(helmet({
+  crossOriginResourcePolicy: false,
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -43,7 +62,7 @@ app.use((err, req, res, next) => {
   console.error("--- GLOBAL ERROR HANDLER ---");
   console.error(err);
   console.error("----------------------------");
-  
+
   const statusCode = err.statusCode || 500;
   res.status(statusCode).json({
     success: false,
