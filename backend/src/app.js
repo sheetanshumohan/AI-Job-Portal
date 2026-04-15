@@ -3,6 +3,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import connectDB from './config/db.js';
 import authRoutes from './routes/auth.routes.js';
 import studentRoutes from './routes/student.routes.js';
 import jobRoutes from './routes/job.routes.js';
@@ -12,6 +13,9 @@ import applicationRoutes from './routes/application.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
 
 const app = express();
+
+// Connect to Database
+connectDB();
 
 // Middlewares
 const allowedOrigins = [
