@@ -47,12 +47,8 @@ const Register = () => {
   const [role, setRole] = useState('student');
   const [step, setStep] = useState(1);
   const [file, setFile] = useState(null);
-  const { register: registerAction, verifyEmail, isLoading } = useAuthStore();
+  const { register: registerAction, isLoading } = useAuthStore();
   const navigate = useNavigate();
-
-  const [showOtpModal, setShowOtpModal] = useState(false);
-  const [otp, setOtp] = useState('');
-  const [otpLoading, setOtpLoading] = useState(false);
 
   // Student Form
   const { register: regStudent, handleSubmit: handleStudent, formState: { errors: errS }, trigger: triggerS } = useForm({
@@ -102,28 +98,13 @@ const Register = () => {
       formData.append('resume', file);
     }
 
-    const { success, message, data: resData } = await registerAction(formData);
+    const { success, message } = await registerAction(formData);
     
     if (success) {
       toast.success('Account created! Please verify your email.');
-      setShowOtpModal(true);
+      navigate('/verify-email');
     } else {
       toast.error(message || 'Registration failed');
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    if (otp.length !== 6) return toast.error("OTP must be 6 digits");
-    setOtpLoading(true);
-    const { success, message } = await verifyEmail(otp);
-    setOtpLoading(false);
-    
-    if (success) {
-      toast.success('Email verified successfully!');
-      setShowOtpModal(false);
-      navigate(role === 'recruiter' ? '/recruiter/dashboard' : '/student/dashboard');
-    } else {
-      toast.error(message || 'Verification failed');
     }
   };
 
@@ -388,47 +369,6 @@ const Register = () => {
         </p>
 
       </motion.div>
-
-      {/* OTP Modal Overlay (Framer Motion) */}
-      <AnimatePresence>
-        {showOtpModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-surface glass border border-slate-700 p-8 rounded-3xl max-w-sm w-full shadow-2xl relative"
-            >
-              <div className="w-12 h-12 bg-brand-500/20 rounded-2xl flex items-center justify-center mb-6 border border-brand-500/30">
-                <KeyRound className="w-6 h-6 text-brand-400" />
-              </div>
-              <h3 className="text-2xl font-bold font-heading text-white mb-2">Verify Your Email</h3>
-              <p className="text-slate-400 text-sm mb-6">We've sent a 6-digit verification code to your email. Please enter it below.</p>
-              
-              <div className="space-y-4">
-                <input 
-                  type="text" 
-                  maxLength={6} 
-                  value={otp} 
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} 
-                  className="w-full text-center tracking-[0.5em] text-2xl font-bold bg-background border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors font-mono" 
-                  placeholder="------" 
-                />
-                <button 
-                  onClick={handleVerifyOtp} 
-                  disabled={otp.length !== 6 || otpLoading} 
-                  className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold text-white bg-brand-600 hover:bg-brand-500 disabled:opacity-50 transition-all font-sans"
-                >
-                  {otpLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Verify Code"}
-                </button>
-                <div className="text-center pt-2">
-                  <button onClick={() => setShowOtpModal(false)} className="text-sm text-slate-400 hover:text-white transition-colors">Cancel</button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };

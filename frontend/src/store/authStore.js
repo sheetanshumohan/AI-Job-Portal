@@ -19,12 +19,15 @@ const useAuthStore = create(
         set({ isLoading: true });
         try {
           const response = await api.get('/auth/me');
+          const { user, needsVerification } = response.data.data || response.data; // Handle different response formats if necessary
+          const actualNeedsVerification = needsVerification !== undefined ? needsVerification : response.data.needsVerification;
+          
           set({ 
-            user: response.data.data.user, 
-            isAuthenticated: true, 
+            user: user || response.data.data.user, 
+            isAuthenticated: !actualNeedsVerification, 
             isLoading: false 
           });
-          return { success: true };
+          return { success: true, needsVerification: actualNeedsVerification };
         } catch (error) {
           set({ user: null, isAuthenticated: false, isLoading: false, token: null });
           return { success: false };

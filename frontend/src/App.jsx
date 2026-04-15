@@ -22,6 +22,7 @@ import SavedJobs from './pages/student/SavedJobs';
 import Notifications from './pages/student/Notifications';
 import Interviews from './pages/student/Interviews';
 import MockInterview from './pages/student/MockInterview';
+import VerifyEmail from './pages/auth/VerifyEmail';
 import useAuthStore from './store/authStore';
 
 // === Route Guards ===
@@ -92,6 +93,7 @@ function App() {
               <ForgotPassword />
             </PublicRoute>
           } />
+          <Route path="/verify-email" element={<VerifyEmail />} />
 
           {/* Dashboard Pages (Protected from logged-out users & strictly role-based) */}
           <Route path="/recruiter/dashboard" element={
