@@ -20,6 +20,8 @@ build/
 # Vercel deployment files
 .vercel
 **/.vercel
+.vercel_backup
+**/.vercel_backup
 
 # Logs
 logs
