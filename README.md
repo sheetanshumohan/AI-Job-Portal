@@ -2,6 +2,10 @@
 
 An intelligent full-stack AI-powered Job Portal and Resume Analyzer that streamlines the hiring process for both Recruiters and Students. The application leverages Google Gemini and OpenAI APIs to automatically analyze resumes, rank applicants, and conduct interactive AI Mock Interviews tailored to job descriptions.
 
+### 🌐 Live Deployments
+- **Frontend App**: [https://frontend-snowy-eta-72.vercel.app](https://frontend-snowy-eta-72.vercel.app)
+- **Backend API**: [https://backend-delta-ochre-28.vercel.app](https://backend-delta-ochre-28.vercel.app)
+
 ---
 
 ## 🚀 Key Features
