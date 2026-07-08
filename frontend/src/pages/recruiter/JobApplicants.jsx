@@ -113,18 +113,29 @@ const JobApplicants = () => {
     if (url.includes('cloudinary.com')) {
       let optimized = url;
 
-      // 1. Ensure it uses 'raw/upload' instead of 'image/upload'
-      optimized = optimized.replace('/image/upload/', '/raw/upload/');
+      // Convert legacy raw PDF URLs back to image URLs so they don't 404
+      if (optimized.toLowerCase().includes('.pdf')) {
+        optimized = optimized.replace('/raw/upload/', '/image/upload/');
+      }
 
-      // 2. Remove transformation hacks like f_pdf since they aren't supported for 'raw'
-      optimized = optimized.replace(/\/upload\/[^v][^\/]+\//, '/upload/');
+      // 1. Remove transformations (anything between /upload/ and /v\d+/)
+      optimized = optimized.replace(/\/upload\/(?:[^\/]+\/)*(v\d+\/)/, '/upload/$1');
+
+      // 2. If it's a download and it's an image/pdf, inject fl_attachment
+      if (isDownload) {
+        if (optimized.includes('/image/upload/')) {
+          optimized = optimized.replace('/image/upload/', '/image/upload/fl_attachment/');
+        }
+      }
 
       // 3. Robust Extension Handling (prevent double .pdf)
       const baseUrl = optimized.split('?')[0];
       const query = optimized.includes('?') ? '?' + optimized.split('?')[1] : '';
 
-      const cleanBaseUrl = baseUrl.replace(/(\.pdf)+$/i, '');
-      optimized = cleanBaseUrl + '.pdf' + query;
+      if (baseUrl.toLowerCase().endsWith('.pdf') || url.toLowerCase().includes('.pdf')) {
+        const cleanBaseUrl = baseUrl.replace(/(\.pdf)+$/i, '');
+        optimized = cleanBaseUrl + '.pdf' + query;
+      }
 
       return optimized;
     }

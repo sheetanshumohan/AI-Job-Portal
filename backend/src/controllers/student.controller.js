@@ -493,7 +493,7 @@ export const updateResume = async (req, res) => {
       });
     }
 
-    let sanitizedUrl = req.file.path.replace('/image/upload/', '/raw/upload/');
+    let sanitizedUrl = req.file.path;
 
     const [baseUrl, queryString] = sanitizedUrl.split('?');
 

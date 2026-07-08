@@ -3,19 +3,55 @@ import useAuthStore from '../../store/authStore';
 import toast from 'react-hot-toast';
 import { useRef } from 'react';
 
+const getOptimizedUrl = (url, isDownload = false) => {
+  if (!url) return '';
+
+  if (url.includes('cloudinary.com')) {
+    let optimized = url;
+
+    // Convert legacy raw PDF URLs back to image URLs so they don't 404
+    if (optimized.toLowerCase().includes('.pdf')) {
+      optimized = optimized.replace('/raw/upload/', '/image/upload/');
+    }
+
+    // 1. Remove transformations (anything between /upload/ and /v\d+/)
+    optimized = optimized.replace(/\/upload\/(?:[^\/]+\/)*(v\d+\/)/, '/upload/$1');
+
+    // 2. If it's a download and it's an image/pdf, inject fl_attachment
+    if (isDownload) {
+      if (optimized.includes('/image/upload/')) {
+        optimized = optimized.replace('/image/upload/', '/image/upload/fl_attachment/');
+      }
+    }
+
+    // 3. Ensure exactly one .pdf extension at the end of the base URL
+    const baseUrl = optimized.split('?')[0];
+    const query = optimized.includes('?') ? '?' + optimized.split('?')[1] : '';
+
+    if (baseUrl.toLowerCase().endsWith('.pdf') || url.toLowerCase().includes('.pdf')) {
+      const cleanBaseUrl = baseUrl.replace(/(\.pdf)+$/i, '');
+      optimized = cleanBaseUrl + '.pdf' + query;
+    }
+
+    return optimized;
+  }
+  return url;
+};
+
 const ResumeCard = () => {
   const { user, updateResume, isLoading } = useAuthStore();
   const fileInputRef = useRef(null);
   
   const resumeUrl = user?.resumeUrl;
-  const fileName = resumeUrl ? resumeUrl.split('/').pop().split('?')[0] : 'No resume uploaded';
+  const optimizedUrl = getOptimizedUrl(resumeUrl);
+  const fileName = optimizedUrl ? optimizedUrl.split('/').pop().split('?')[0] : 'No resume uploaded';
   const fileExtension = fileName.split('.').pop().toUpperCase();
   const isImageOrPdf = ['PDF', 'JPG', 'JPEG', 'PNG', 'WEBP'].includes(fileExtension);
   
   // For non-browser-viewable files (like DOC/DOCX), use Google Docs Viewer
   const viewUrl = isImageOrPdf 
-    ? resumeUrl 
-    : `https://docs.google.com/viewer?url=${encodeURIComponent(resumeUrl)}&embedded=true`;
+    ? optimizedUrl 
+    : `https://docs.google.com/viewer?url=${encodeURIComponent(optimizedUrl)}&embedded=true`;
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];

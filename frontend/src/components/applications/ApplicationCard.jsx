@@ -62,20 +62,29 @@ const ApplicationCard = ({ application, onWithdraw }) => {
     if (url.includes('cloudinary.com')) {
       let optimized = url;
       
-      // 1. Ensure it uses 'raw/upload' instead of 'image/upload'
-      optimized = optimized.replace('/image/upload/', '/raw/upload/');
+      // Convert legacy raw PDF URLs back to image URLs so they don't 404
+      if (optimized.toLowerCase().includes('.pdf')) {
+        optimized = optimized.replace('/raw/upload/', '/image/upload/');
+      }
 
-      // 2. Remove transformation hacks like f_pdf since they aren't supported for 'raw'
-      // This regex looks for anything between /upload/ and the version (v12345/) or the folder
-      optimized = optimized.replace(/\/upload\/[^v][^\/]+\//, '/upload/');
+      // 1. Remove transformations (anything between /upload/ and /v\d+/)
+      optimized = optimized.replace(/\/upload\/(?:[^\/]+\/)*(v\d+\/)/, '/upload/$1');
+
+      // 2. If it's a download and it's an image/pdf, inject fl_attachment
+      if (isDownload) {
+        if (optimized.includes('/image/upload/')) {
+          optimized = optimized.replace('/image/upload/', '/image/upload/fl_attachment/');
+        }
+      }
 
       // 3. Robust Extension Handling (prevent double .pdf)
-      // Remove any existing .pdf extension(s) and then add exactly one
       const baseUrl = optimized.split('?')[0];
       const query = optimized.includes('?') ? '?' + optimized.split('?')[1] : '';
       
-      const cleanBase = baseUrl.replace(/(\.pdf)+$/i, '');
-      optimized = cleanBase + '.pdf' + query;
+      if (baseUrl.toLowerCase().endsWith('.pdf') || url.toLowerCase().includes('.pdf')) {
+        const cleanBase = baseUrl.replace(/(\.pdf)+$/i, '');
+        optimized = cleanBase + '.pdf' + query;
+      }
       
       return optimized;
     }

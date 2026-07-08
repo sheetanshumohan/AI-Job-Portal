@@ -28,7 +28,7 @@ export const uploadResumeSingle = async (req, res) => {
     // Ensure URL has .pdf extension exactly once and uses raw path
     // Multer-Cloudinary might return a URL with image/upload if not careful, 
     // but configuring it as 'raw' should handle it. This is a safeguard.
-    let sanitizedUrl = req.file.path.replace('/image/upload/', '/raw/upload/');
+    let sanitizedUrl = req.file.path;
     
     // Remove duplicate extensions if they exist
     sanitizedUrl = sanitizedUrl.replace(/(\.pdf)+$/i, '') + '.pdf';
@@ -139,7 +139,7 @@ export const applyJob = async (req, res) => {
     
     if (req.file) {
       // Ensure URL has .pdf extension exactly once and uses raw path
-      finalResumeUrl = req.file.path.replace('/image/upload/', '/raw/upload/');
+      finalResumeUrl = req.file.path;
       finalResumeUrl = finalResumeUrl.replace(/(\.pdf)+$/i, '') + '.pdf';
       
       user.resumeUrl = finalResumeUrl;
