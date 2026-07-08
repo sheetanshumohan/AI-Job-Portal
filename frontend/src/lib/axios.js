@@ -4,7 +4,7 @@ import axios from 'axios';
 // Assuming Zustand persists in localStorage or we just pass the token.
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1',
+  baseURL: import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1',
   withCredentials: true, // If using cookies
 });
 
