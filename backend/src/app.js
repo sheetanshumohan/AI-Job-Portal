@@ -32,13 +32,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // Routes
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/student', studentRoutes);
-app.use('/api/v1/jobs', jobRoutes);
-app.use('/api/v1/recruiter', recruiterRoutes);
-app.use('/api/v1/interview', interviewRoutes);
-app.use('/api/v1/applications', applicationRoutes);
-app.use('/api/v1/notifications', notificationRoutes);
+app.use('/auth', authRoutes);
+app.use('/student', studentRoutes);
+app.use('/jobs', jobRoutes);
+app.use('/recruiter', recruiterRoutes);
+app.use('/interview', interviewRoutes);
+app.use('/applications', applicationRoutes);
+app.use('/notifications', notificationRoutes);
 
 // Base route
 app.get('/', (req, res) => {
