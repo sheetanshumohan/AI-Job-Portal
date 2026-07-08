@@ -17,12 +17,7 @@ connectDB();
 
 // Middlewares
 const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  'https://ai-resume-analyzer-frontend-new.vercel.app',
-  'https://ai-job-portal-omega-seven.vercel.app',
   'https://ai-resume-analyzer-frontend-eight-tan.vercel.app',
-  'http://localhost:3000',
-  'http://localhost:5173'
 ].filter(Boolean);
 
 app.use(
