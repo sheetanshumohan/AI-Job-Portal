@@ -10,12 +10,11 @@ import {
   formatMatchScore, 
   getUserEmbeddingText 
 } from '../utils/matching.service.js';
+import { closeExpiredJobs } from './job.controller.js';
 
-// @desc    Get student dashboard stats
-// @route   GET /api/v1/student/stats
-// @access  Private/Student
 export const getDashboardStats = async (req, res) => {
   try {
+    await closeExpiredJobs();
     const userId = req.userId;
 
     const appliedCount = await Application.countDocuments({ student: userId });
@@ -74,10 +73,16 @@ export const getDashboardStats = async (req, res) => {
           await User.findByIdAndUpdate(userId, { embedding: userEmbedding });
         }
       }
-
       if (userEmbedding && userEmbedding.length > 0) {
         // 2. Fetch active jobs with embeddings
-        const activeJobs = await Job.find({ status: 'active' }).select('+embedding').limit(50);
+        const activeJobs = await Job.find({ 
+          status: 'active',
+          $or: [
+            { deadline: { $exists: false } },
+            { deadline: null },
+            { deadline: { $gte: new Date() } }
+          ]
+        }).select('+embedding').limit(50);
         
         if (activeJobs.length > 0) {
           // 3. Calculate similarities
@@ -117,7 +122,6 @@ export const getDashboardStats = async (req, res) => {
   }
 };
 
-// Helper function for time ago in backend
 const getTimeAgo = (date) => {
   const seconds = Math.floor((new Date() - new Date(date)) / 1000);
   if (seconds < 60) return "Just now";
@@ -128,9 +132,6 @@ const getTimeAgo = (date) => {
   return Math.floor(interval) + "m ago";
 };
 
-// @desc    Get student recent activity
-// @route   GET /api/v1/student/activity
-// @access  Private/Student
 export const getRecentActivity = async (req, res) => {
   try {
     const userId = req.userId;
@@ -208,11 +209,9 @@ export const getRecentActivity = async (req, res) => {
   }
 };
 
-// @desc    Get saved jobs for student
-// @route   GET /api/v1/student/saved-jobs
-// @access  Private/Student
 export const getSavedJobs = async (req, res) => {
   try {
+    await closeExpiredJobs();
     const { 
       search, 
       type, 
@@ -324,9 +323,6 @@ export const getSavedJobs = async (req, res) => {
   }
 };
 
-// @desc    Toggle save job
-// @route   POST /api/v1/student/toggle-save-job/:jobId
-// @access  Private/Student
 export const toggleSaveJob = async (req, res) => {
   try {
     const { jobId } = req.params;
@@ -348,9 +344,6 @@ export const toggleSaveJob = async (req, res) => {
   }
 };
 
-// @desc    Get analytics data
-// @route   GET /api/v1/student/analytics
-// @access  Private/Student
 export const getAnalytics = async (req, res) => {
   try {
     const userId = req.userId;
@@ -394,9 +387,6 @@ export const getAnalytics = async (req, res) => {
   }
 };
 
-// @desc    Update student profile
-// @route   PUT /api/v1/student/profile
-// @access  Private/Student
 export const updateProfile = async (req, res) => {
   try {
     const userId = req.userId;
@@ -438,9 +428,6 @@ export const updateProfile = async (req, res) => {
   }
 };
 
-// @desc    Regenerate AI Professional Summary
-// @route   POST /api/v1/student/regenerate-summary
-// @access  Private/Student
 export const regenerateAISummary = async (req, res) => {
   try {
     const user = await User.findById(req.userId);
@@ -463,9 +450,6 @@ export const regenerateAISummary = async (req, res) => {
   }
 };
 
-// @desc    Update profile photo
-// @route   POST /api/v1/student/update-avatar
-// @access  Private/Student
 export const updateAvatar = async (req, res) => {
   try {
     if (!req.file) {
@@ -491,9 +475,6 @@ export const updateAvatar = async (req, res) => {
   }
 };
 
-// @desc    Update/Replace resume
-// @route   POST /api/v1/student/update-resume
-// @access  Private/Student
 export const updateResume = async (req, res) => {
   try {
     if (!req.file) {
@@ -539,22 +520,29 @@ export const updateResume = async (req, res) => {
   }
 };
 
-// @desc    Increment student profile views
-// @route   PATCH /api/v1/student/:id/view
-// @access  Private/Recruiter
 export const incrementProfileViews = async (req, res) => {
   try {
     const { id } = req.params;
+    const viewerId = req.userId;
 
-    // We use findByIdAndUpdate with $inc for atomic increment
-    const user = await User.findByIdAndUpdate(
-      id,
-      { $inc: { profileViews: 1 } },
-      { new: true }
-    );
+    const user = await User.findById(id);
 
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Ensure viewedBy array is initialized
+    if (!user.viewedBy) {
+      user.viewedBy = [];
+    }
+
+    // Check if the viewer has already viewed the profile
+    const hasViewed = user.viewedBy.some(v => v.toString() === viewerId.toString());
+
+    if (!hasViewed) {
+      user.viewedBy.push(viewerId);
+      user.profileViews = (user.profileViews || 0) + 1;
+      await user.save();
     }
 
     res.status(200).json({
@@ -567,9 +555,6 @@ export const incrementProfileViews = async (req, res) => {
   }
 };
 
-// @desc    Get AI Resume Analysis
-// @route   GET /api/v1/student/resume-analysis
-// @access  Private/Student
 export const getResumeAnalysis = async (req, res) => {
   try {
     const user = await User.findById(req.userId);

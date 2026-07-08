@@ -64,6 +64,8 @@ const SavedJobCard = ({ job, onRemove }) => {
       <div className="flex flex-col sm:flex-row gap-2 mt-8 pt-6 border-t border-slate-800/50">
         <Link 
           to={`/student/jobs/${job._id || job.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
           className="flex-1 flex items-center justify-center gap-2 py-3 bg-slate-800/50 hover:bg-slate-800 text-white rounded-xl text-[10px] font-bold transition-all border border-slate-700/50"
         >
           <ExternalLink size={14} /> Details

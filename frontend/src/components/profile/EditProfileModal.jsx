@@ -352,6 +352,7 @@ const EditProfileModal = ({ isOpen, onClose, user }) => {
                       <input 
                         {...register('graduationYear')}
                         type="number"
+                        min="0"
                         className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-brand-500 transition-all font-medium text-sm"
                       />
                     </div>

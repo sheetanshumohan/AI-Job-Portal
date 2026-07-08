@@ -1,7 +1,8 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import multer from 'multer';
-// use for cloudinary
+
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -9,13 +10,12 @@ cloudinary.config({
 });
 
 const resumeStorage = new CloudinaryStorage({
-  cloudinary: cloudinary,
+  cloudinary,
   params: {
     folder: 'resumes',
-    resource_type: 'raw',
-    format:'pdf',
-    use_filename: true,
-    unique_filename: true,
+    resource_type: 'auto', // automatically detected which format is it
+    use_filename: true, // saves uploaded file with original name
+    unique_filename: true, // ensures unique filename
   },
 });
 
@@ -34,7 +34,7 @@ const logoStorage = new CloudinaryStorage({
   params: {
     folder: 'company_logos',
     allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
-    transformation: [{ width: 500, height: 500, crop: 'limit' }]
+    transformation: [{ width: 500, height: 500, crop: 'limit' }] // here crop limit means shrink large images and do not enlarge shorter images. Used for balance and quality
   },
 });
 

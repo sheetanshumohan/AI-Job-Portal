@@ -36,13 +36,8 @@ const AppliedJobs = () => {
           let visualStatus = statusMapping[app.status] || 'applied';
           const interviewData = app.interviewData;
 
-          // Condition 1: If status is Interview but session hasn't happened yet, stay at 'review'
-          if (app.status === 'Interview' && (!interviewData || interviewData.status !== 'completed')) {
-            visualStatus = 'review';
-          }
-
-          // Condition 2: If status is Shortlisted, Selected, or Rejected AFTER an interview is completed (or just Selected overall), complete the bar
-          if ((app.status === 'Selected') || ((app.status === 'Shortlisted' || app.status === 'Rejected') && interviewData?.status === 'completed')) {
+          // If status is Selected, or if (Shortlisted/Rejected) after an interview has completed, complete the bar to 'offer'
+          if (app.status === 'Selected' || ((app.status === 'Shortlisted' || app.status === 'Rejected') && interviewData?.status === 'completed')) {
             visualStatus = 'offer';
           }
 

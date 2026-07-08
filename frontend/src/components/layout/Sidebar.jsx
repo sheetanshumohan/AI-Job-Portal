@@ -65,7 +65,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               <Sparkles size={18} className="text-white" />
             </div>
             <span className={`font-heading font-bold text-xl tracking-tight text-white whitespace-nowrap transition-opacity duration-300 ${!isOpen ? 'lg:opacity-0 xl:opacity-100' : 'opacity-100'}`}>
-              Hire<span className="text-brand-400">Sphere</span>
+              AI Job <span className="text-brand-400">Portal</span>
             </span>
           </div>
           <button onClick={toggleSidebar} className="lg:hidden text-slate-400 hover:text-white">

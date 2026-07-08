@@ -92,12 +92,21 @@ const JobSummarySidebar = ({ job, mode = 'student' }) => {
         </div>
 
         {mode === 'student' && (
-          <RouterLink 
-            to={`/student/apply/${job._id || job.id}`}
-            className="w-full mt-8 py-4 bg-brand-600 hover:bg-brand-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-brand-600/30 transition-all hover:translate-y-[-2px]"
-          >
-            Apply Now <ArrowRight size={18} />
-          </RouterLink>
+          job.deadline && new Date(job.deadline) < new Date() ? (
+            <button
+              disabled
+              className="w-full mt-8 py-4 bg-slate-800 text-slate-500 rounded-2xl font-bold flex items-center justify-center gap-2 border border-slate-700/50 cursor-not-allowed"
+            >
+              Application Expired
+            </button>
+          ) : (
+            <RouterLink 
+              to={`/student/apply/${job._id || job.id}`}
+              className="w-full mt-8 py-4 bg-brand-600 hover:bg-brand-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-brand-600/30 transition-all hover:translate-y-[-2px]"
+            >
+              Apply Now <ArrowRight size={18} />
+            </RouterLink>
+          )
         )}
       </div>
 
@@ -116,11 +125,6 @@ const JobSummarySidebar = ({ job, mode = 'student' }) => {
             <p className="text-[10px] text-slate-500 font-medium capitalize">{job.location} • Verified</p>
           </div>
         </div>
-        {mode === 'student' && (
-          <button className="w-full py-3 bg-slate-800/50 hover:bg-slate-800 text-slate-200 rounded-xl text-xs font-bold border border-slate-700/50 flex items-center justify-center gap-2 transition-all">
-            <MessageCircle size={16} /> Quick Message
-          </button>
-        )}
       </div>
     </div>
   );

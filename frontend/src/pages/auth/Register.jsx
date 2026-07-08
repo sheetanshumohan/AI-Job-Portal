@@ -30,7 +30,9 @@ const studentSchema = z.object({
   collegeName: z.string().optional(),
   degree: z.string().optional(),
   specialization: z.string().optional(),
-  graduationYear: z.string().optional(),
+  graduationYear: z.string().optional().refine(val => !val || parseInt(val) >= 0, {
+    message: "Graduation year cannot be negative"
+  }),
 });
 
 const recruiterSchema = z.object({
@@ -229,7 +231,8 @@ const Register = () => {
                       </div>
                       <div>
                         <label className="block text-sm text-slate-300 mb-1">Graduation Year</label>
-                        <input {...regStudent('graduationYear')} type="number" placeholder="2024" className="w-full bg-surface/50 border border-slate-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none" />
+                        <input {...regStudent('graduationYear')} type="number" min="0" placeholder="2024" className="w-full bg-surface/50 border border-slate-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none" />
+                        {errS.graduationYear && <p className="text-red-400 text-xs mt-1">{errS.graduationYear.message}</p>}
                       </div>
                     </div>
                     <div>

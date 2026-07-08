@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { extractTextFromResumeUrl } from './pdfParser.js';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -10,20 +11,40 @@ export const generateProfessionalSummary = async (userData) => {
     return `Dynamic professional summary for ${userData.firstName}. (Please add OPENAI_API_KEY for real AI generation)`;
   }
 
-  const prompt = `
-    Generate a concise, professional summary (max 3-4 sentences) for a job seeker profile based on the following details:
-    Name: ${userData.firstName} ${userData.lastName}
-    Headline: ${userData.headline}
-    Skills: ${userData.skills?.join(', ')}
-    Education: ${userData.degree} from ${userData.collegeName}
-    Experiences: ${userData.experiences?.map(e => `${e.role} at ${e.company}`).join('; ')}
-    
-    The tone should be professional and highlighting their key strengths.
-  `;
+  let resumeText = null;
+  if (userData && userData.resumeUrl) {
+    resumeText = await extractTextFromResumeUrl(userData.resumeUrl);
+  }
+
+  let prompt = '';
+  if (resumeText) {
+    prompt = `
+      Generate a concise, professional summary (max 3-4 sentences) for a job seeker profile based on their resume text:
+      Candidate Name: ${userData.firstName} ${userData.lastName}
+      
+      Resume Content:
+      ---
+      ${resumeText}
+      ---
+      
+      The summary should highlight their key strengths, experience, and skills in a professional tone. Do not mention that this was generated from resume text.
+    `;
+  } else {
+    prompt = `
+      Generate a concise, professional summary (max 3-4 sentences) for a job seeker profile based on the following details:
+      Name: ${userData.firstName} ${userData.lastName}
+      Headline: ${userData.headline}
+      Skills: ${userData.skills?.join(', ')}
+      Education: ${userData.degree} from ${userData.collegeName}
+      Experiences: ${userData.experiences?.map(e => `${e.role} at ${e.company}`).join('; ')}
+      
+      The tone should be professional and highlighting their key strengths.
+    `;
+  }
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4.1-mini",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 150,
     });
@@ -36,8 +57,24 @@ export const generateProfessionalSummary = async (userData) => {
 };
 
 export const generateInterviewQuestions = async (jobData, userData, count = 10) => {
+  let resumeText = null;
+  if (userData && userData.resumeUrl) {
+    resumeText = await extractTextFromResumeUrl(userData.resumeUrl);
+  }
+
+  let candidateProfile = '';
+  if (resumeText) {
+    candidateProfile = `Resume Content:\n${resumeText}`;
+  } else {
+    candidateProfile = `
+      Name: ${userData.firstName}
+      Headline: ${userData.headline}
+      Skills: ${userData.skills?.join(', ')}
+    `;
+  }
+
   const prompt = `
-    You are an expert technical recruiter. Based on the job description and the candidate's profile below, generate ${count} challenging interview questions.
+    You are an expert technical recruiter. Based on the job description and the candidate's profile/resume below, generate ${count} challenging interview questions.
     Mix behavioral and technical questions based on their skills.
 
     Job Title: ${jobData.title}
@@ -45,9 +82,7 @@ export const generateInterviewQuestions = async (jobData, userData, count = 10) 
     Job Description: ${jobData.description}
 
     Candidate Profile:
-    Name: ${userData.firstName}
-    Headline: ${userData.headline}
-    Skills: ${userData.skills?.join(', ')}
+    ${candidateProfile}
     
     Return the response as a JSON object with a "questions" key containing an array of ${count} strings.
     Example: { "questions": ["Question 1", "Question 2", ...] }
@@ -55,7 +90,7 @@ export const generateInterviewQuestions = async (jobData, userData, count = 10) 
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4.1-mini",
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" },
     });
@@ -112,7 +147,7 @@ export const evaluateInterviewAnswer = async (question, answer) => {
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4.1-mini",
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" },
     });
@@ -139,7 +174,7 @@ export const generateOverallInterviewFeedback = async (questionsData) => {
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4.1-mini",
       messages: [{ role: "user", content: prompt }],
     });
 
@@ -158,8 +193,26 @@ export const analyzeApplication = async (jobData, userData) => {
     };
   }
 
+  let resumeText = null;
+  if (userData && userData.resumeUrl) {
+    resumeText = await extractTextFromResumeUrl(userData.resumeUrl);
+  }
+
+  let candidateProfile = '';
+  if (resumeText) {
+    candidateProfile = `Resume Content:\n${resumeText}`;
+  } else {
+    candidateProfile = `
+      Name: ${userData.firstName}
+      Headline: ${userData.headline}
+      Skills: ${userData.skills?.join(', ')}
+      Summary: ${userData.bio}
+      Experiences: ${userData.experiences?.map(e => `${e.role} at ${e.company} (${e.period})`).join('; ')}
+    `;
+  }
+
   const prompt = `
-    You are an AI specialized in candidate screening. Compare the Candidate Profile with the Job Description below.
+    You are an AI specialized in candidate screening. Compare the Candidate Profile/Resume with the Job Description below.
     Identify exactly 3 specific "Strengths" and 2-3 specific "Gaps/Areas for Improvement" for this candidate relative to this job.
     
     Job Description:
@@ -168,11 +221,7 @@ export const analyzeApplication = async (jobData, userData) => {
     Company: ${jobData.company}
     
     Candidate Profile:
-    Name: ${userData.firstName}
-    Headline: ${userData.headline}
-    Skills: ${userData.skills?.join(', ')}
-    Summary: ${userData.bio}
-    Experiences: ${userData.experiences?.map(e => `${e.role} at ${e.company} (${e.period})`).join('; ')}
+    ${candidateProfile}
     
     Return the analysis as a JSON object with two keys: "strengths" (array of strings) and "gaps" (array of strings).
     Be specific and technical. Do not use generic praise.
@@ -181,7 +230,7 @@ export const analyzeApplication = async (jobData, userData) => {
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4.1-mini",
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" },
     });
@@ -206,16 +255,30 @@ export const analyzeResume = async (userData) => {
     };
   }
 
+  let resumeText = null;
+  if (userData && userData.resumeUrl) {
+    resumeText = await extractTextFromResumeUrl(userData.resumeUrl);
+  }
+
+  let profileDetails = '';
+  if (resumeText) {
+    profileDetails = `Resume Content:\n${resumeText}`;
+  } else {
+    profileDetails = `
+      Name: ${userData.firstName}
+      Headline: ${userData.headline}
+      Skills: ${userData.skills?.join(', ')}
+      Summary: ${userData.bio}
+      Experiences: ${userData.experiences?.map(e => `${e.role} at ${e.company} (${e.period})`).join('; ')}
+      Education: ${userData.degree} from ${userData.collegeName}
+    `;
+  }
+
   const prompt = `
-    You are an AI specialized in professional resume critique. Analyze the student profile below and provide a detailed assessment.
+    You are an AI specialized in professional resume critique. Analyze the student profile/resume below and provide a detailed assessment.
     
-    Student Profile:
-    Name: ${userData.firstName}
-    Headline: ${userData.headline}
-    Skills: ${userData.skills?.join(', ')}
-    Summary: ${userData.bio}
-    Experiences: ${userData.experiences?.map(e => `${e.role} at ${e.company} (${e.period})`).join('; ')}
-    Education: ${userData.degree} from ${userData.collegeName}
+    Student Profile/Resume:
+    ${profileDetails}
     
     Return the analysis as a JSON object with the following keys:
     - "score": A number from 1 to 100 reflecting profile strength.
@@ -229,7 +292,7 @@ export const analyzeResume = async (userData) => {
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4.1-mini",
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" },
     });

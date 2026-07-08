@@ -10,11 +10,26 @@ import {
 } from '../utils/matching.service.js';
 import sendEmail from '../utils/sendEmail.js';
 
-// @desc    Get all jobs (with semantic matching for students)
-// @route   GET /api/v1/jobs
-// @access  Public (or Private if matching is needed)
+export const closeExpiredJobs = async () => {
+  try {
+    await Job.updateMany(
+      {
+        status: 'active',
+        deadline: { $lt: new Date() }
+      },
+      {
+        $set: { status: 'closed' }
+      }
+    );
+  } catch (error) {
+    console.error('Error closing expired jobs:', error);
+  }
+};
+
+
 export const getAllJobs = async (req, res) => {
   try {
+    await closeExpiredJobs();
     const { 
       search, 
       type, 
@@ -26,7 +41,18 @@ export const getAllJobs = async (req, res) => {
       sort = 'newest'
     } = req.query;
 
-    const query = { status: 'active' };
+    const query = { 
+      status: 'active',
+      $and: [
+        {
+          $or: [
+            { deadline: { $exists: false } },
+            { deadline: null },
+            { deadline: { $gte: new Date() } }
+          ]
+        }
+      ]
+    };
 
     if (minSalary) {
       query['salary.min'] = { $gte: parseInt(minSalary) * 1000 };
@@ -34,10 +60,12 @@ export const getAllJobs = async (req, res) => {
 
     // standard filtering
     if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { company: { $regex: search, $options: 'i' } }
-      ];
+      query.$and.push({
+        $or: [
+          { title: { $regex: search, $options: 'i' } },
+          { company: { $regex: search, $options: 'i' } }
+        ]
+      });
     }
 
     if (type) {
@@ -139,9 +167,7 @@ export const getAllJobs = async (req, res) => {
   }
 };
 
-// @desc    Create new job
-// @route   POST /api/v1/jobs
-// @access  Private/Recruiter
+
 export const createJob = async (req, res) => {
   try {
     const {
@@ -213,11 +239,10 @@ export const createJob = async (req, res) => {
   }
 };
 
-// @desc    Get single job details
-// @route   GET /api/v1/jobs/:id
-// @access  Public
+
 export const getJobById = async (req, res) => {
   try {
+    await closeExpiredJobs();
     const job = await Job.findById(req.params.id);
     if (!job) {
       return res.status(404).json({ success: false, message: 'Job not found' });
@@ -270,11 +295,10 @@ export const getJobById = async (req, res) => {
 
 
 
-// @desc    Get recruiter's jobs
-// @route   GET /api/v1/jobs/my-jobs
-// @access  Private/Recruiter
+
 export const getRecruiterJobs = async (req, res) => {
   try {
+    await closeExpiredJobs();
     const jobs = await Job.find({ postedBy: req.userId }).sort({ createdAt: -1 });
     
     // For each job, get the applicant count
@@ -295,9 +319,7 @@ export const getRecruiterJobs = async (req, res) => {
   }
 };
 
-// @desc    Delete job
-// @route   DELETE /api/v1/jobs/:id
-// @access  Private/Recruiter
+
 export const deleteJob = async (req, res) => {
   try {
     const job = await Job.findById(req.params.id);
@@ -309,6 +331,12 @@ export const deleteJob = async (req, res) => {
     // Ensure job belongs to recruiter
     if (job.postedBy.toString() !== req.userId) {
       return res.status(403).json({ success: false, message: 'Not authorized to delete this job' });
+    }
+
+    // Ensure recruiter is verified
+    const recruiter = await User.findById(req.userId);
+    if (!recruiter || !recruiter.isVerified) {
+      return res.status(403).json({ success: false, message: 'Not authorized. Recruiter account must be verified.' });
     }
 
     // 1. Find all applications for this job and notify students
@@ -347,9 +375,7 @@ export const deleteJob = async (req, res) => {
   }
 };
 
-// @desc    Update job status
-// @route   PATCH /api/v1/jobs/:id/status
-// @access  Private/Recruiter
+
 export const updateJobStatus = async (req, res) => {
   try {
     const { status } = req.body;
@@ -367,6 +393,12 @@ export const updateJobStatus = async (req, res) => {
     // Use .equals() for safe ObjectId comparison
     if (!job.postedBy.equals(req.userId)) {
       return res.status(403).json({ success: false, message: 'Not authorized to change this job status' });
+    }
+
+    // Ensure recruiter is verified
+    const recruiter = await User.findById(req.userId);
+    if (!recruiter || !recruiter.isVerified) {
+      return res.status(403).json({ success: false, message: 'Not authorized. Recruiter account must be verified.' });
     }
 
     // Direct update to avoid potential validation issues with older records
@@ -387,9 +419,7 @@ export const updateJobStatus = async (req, res) => {
 };
 
 
-// @desc    Update job details
-// @route   PUT /api/v1/jobs/:id
-// @access  Private/Recruiter
+
 export const updateJob = async (req, res) => {
   try {
     const job = await Job.findById(req.params.id);
@@ -400,6 +430,12 @@ export const updateJob = async (req, res) => {
 
     if (job.postedBy.toString() !== req.userId) {
       return res.status(403).json({ success: false, message: 'Not authorized to update this job' });
+    }
+
+    // Ensure recruiter is verified
+    const recruiter = await User.findById(req.userId);
+    if (!recruiter || !recruiter.isVerified) {
+      return res.status(403).json({ success: false, message: 'Not authorized. Recruiter account must be verified.' });
     }
 
     const {
@@ -445,7 +481,12 @@ export const updateJob = async (req, res) => {
       };
       job.level = experienceRequired.level ?? job.level;
     }
-    if (jobStatus) job.status = jobStatus;
+    if (jobStatus) {
+      if (!['active', 'draft', 'paused', 'closed'].includes(jobStatus)) {
+        return res.status(400).json({ success: false, message: 'Invalid job status' });
+      }
+      job.status = jobStatus;
+    }
 
     // Regenerate embedding if needed
     if (needsNewEmbedding) {

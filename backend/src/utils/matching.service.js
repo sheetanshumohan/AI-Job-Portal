@@ -5,11 +5,6 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-/**
- * Generate embedding for a given text using OpenAI
- * @param {string} text 
- * @returns {Promise<number[]>}
- */
 export const getEmbedding = async (text) => {
   if (!process.env.OPENAI_API_KEY) {
     console.warn('OPENAI_API_KEY not found, returning placeholder embedding');
@@ -52,15 +47,26 @@ export const calculateSimilarity = (vecA, vecB) => {
 };
 
 /**
- * Convert similarity score (usually 0.7-1.0 for embeddings) to a readable percentage (0-100)
+ * Convert similarity score to a readable percentage (0-100)
+ * Tailored for text-embedding-3-small baseline values
  * @param {number} similarity 
  * @returns {number}
  */
 export const formatMatchScore = (similarity) => {
-  // Map similarity from [0.7, 0.95] to [40, 99] for better user experience
-  let score = ((similarity - 0.7) / (0.95 - 0.7)) * 60 + 40;
-  score = Math.max(10, Math.min(99, score)); // Clamp
-  return Math.round(score);
+  if (!similarity || similarity <= 0.3) {
+    return 0;
+  }
+  
+  let score;
+  if (similarity >= 0.75) {
+    score = 95 + ((similarity - 0.75) / (1.0 - 0.75)) * 4; // 0.75 - 1.0 -> 95% - 99%
+  } else if (similarity >= 0.5) {
+    score = 55 + ((similarity - 0.5) / (0.75 - 0.5)) * 40; // 0.5 - 0.75 -> 55% - 95%
+  } else {
+    score = ((similarity - 0.3) / (0.5 - 0.3)) * 55; // 0.3 - 0.5 -> 0% - 55%
+  }
+  
+  return Math.max(0, Math.min(99, Math.round(score)));
 };
 
 /**

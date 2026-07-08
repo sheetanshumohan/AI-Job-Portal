@@ -486,7 +486,7 @@ const JobApplicants = () => {
                         </div>
                         <div className="space-y-2">
                           <h3 className="text-xl font-bold text-white tracking-tight">Resume Document</h3>
-                          <p className="text-xs text-slate-500 max-w-xs font-medium">Verified PDF Document • {selectedApplicant.firstName}_Resume_HireSphere.pdf</p>
+                          <p className="text-xs text-slate-500 max-w-xs font-medium">Verified PDF Document • {selectedApplicant.firstName}_Resume_AIJobPortal.pdf</p>
                         </div>
                         <div className="flex flex-wrap items-center justify-center gap-4">
                           <a

@@ -65,7 +65,10 @@ const userSchema = new mongoose.Schema({
   collegeName: String,
   degree: String,
   specialization: String,
-  graduationYear: Number,
+  graduationYear: {
+    type: Number,
+    min: [0, 'Graduation year cannot be negative']
+  },
   resumeUrl: String,
 
   // Recruiter Specific Fields
@@ -99,6 +102,12 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  viewedBy: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }
+  ],
 
   savedJobs: [
     {

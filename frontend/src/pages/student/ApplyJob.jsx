@@ -58,6 +58,14 @@ const ApplyJob = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  const handleCancel = () => {
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate(`/student/jobs/${id}`);
+    }
+  };
+
   const { register, control, handleSubmit, setValue, watch, trigger, formState: { errors } } = useForm({
     resolver: zodResolver(applySchema),
     defaultValues: {
@@ -167,7 +175,7 @@ const ApplyJob = () => {
         {!isSuccess ? (
           <>
             <button 
-              onClick={() => navigate(-1)}
+              onClick={handleCancel}
               className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-white mb-8 transition-all group"
             >
               <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />

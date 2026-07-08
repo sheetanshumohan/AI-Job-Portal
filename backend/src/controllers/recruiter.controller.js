@@ -2,10 +2,8 @@ import User from '../models/User.model.js';
 import Job from '../models/Job.model.js';
 import Application from '../models/Application.model.js';
 import Interview from '../models/Interview.model.js';
+import { closeExpiredJobs } from './job.controller.js';
 
-// @desc    Get current recruiter profile
-// @route   GET /api/v1/recruiter/profile
-// @access  Private/Recruiter
 export const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.userId);
@@ -22,9 +20,6 @@ export const getProfile = async (req, res) => {
   }
 };
 
-// @desc    Update recruiter profile
-// @route   PUT /api/v1/recruiter/profile
-// @access  Private/Recruiter
 export const updateProfile = async (req, res) => {
   try {
     const userId = req.userId;
@@ -57,9 +52,6 @@ export const updateProfile = async (req, res) => {
   }
 };
 
-// @desc    Update recruiter avatar
-// @route   POST /api/v1/recruiter/update-avatar
-// @access  Private/Recruiter
 export const updateAvatar = async (req, res) => {
   try {
     if (!req.file) {
@@ -80,9 +72,6 @@ export const updateAvatar = async (req, res) => {
   }
 };
 
-// @desc    Update company logo
-// @route   POST /api/v1/recruiter/update-logo
-// @access  Private/Recruiter
 export const updateLogo = async (req, res) => {
   try {
     if (!req.file) {
@@ -103,11 +92,9 @@ export const updateLogo = async (req, res) => {
   }
 };
 
-// @desc    Get recruiter analytics
-// @route   GET /api/v1/recruiter/analytics
-// @access  Private/Recruiter
 export const getAnalytics = async (req, res) => {
   try {
+    await closeExpiredJobs();
     const userId = req.userId;
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     
@@ -220,10 +207,37 @@ export const getAnalytics = async (req, res) => {
       { $unwind: '$jobDetails' }
     ]);
 
-    const topJobsData = topJobsAggregate.map(item => ({
-      title: item.jobDetails.title,
-      applicants: item.applicants,
-      growth: Math.floor(Math.random() * 50) + 10 // Mock growth for now
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+    const topJobsData = await Promise.all(topJobsAggregate.map(async (item) => {
+      const jobId = item._id;
+
+      // Count applications in the last 7 days
+      const recentCount = await Application.countDocuments({
+        job: jobId,
+        createdAt: { $gte: sevenDaysAgo }
+      });
+
+      // Count applications from 14 days ago to 7 days ago
+      const previousCount = await Application.countDocuments({
+        job: jobId,
+        createdAt: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo }
+      });
+
+      let growth = 0;
+      if (previousCount > 0) {
+        growth = Math.max(0, Math.round(((recentCount - previousCount) / previousCount) * 100));
+      } else if (recentCount > 0) {
+        growth = 100;
+      }
+
+      return {
+        title: item.jobDetails.title,
+        applicants: item.applicants,
+        growth: growth
+      };
     }));
 
     // 7. KPIs
@@ -268,11 +282,9 @@ export const getAnalytics = async (req, res) => {
   }
 };
 
-// @desc    Get recruiter dashboard summary
-// @route   GET /api/v1/recruiter/dashboard-summary
-// @access  Private/Recruiter
 export const getDashboardSummary = async (req, res) => {
   try {
+    await closeExpiredJobs();
     const userId = req.userId;
 
     // 1. Get all jobs posted by this recruiter
@@ -334,12 +346,56 @@ export const getDashboardSummary = async (req, res) => {
     const pendingApplicants = await Application.countDocuments({ job: { $in: myJobIds }, status: 'Pending' });
     const interviewsPending = await Application.countDocuments({ job: { $in: myJobIds }, status: 'Interview' });
     
-    // 5. AI performance insight (Simulated based on match scores)
+    // Calculate actual expiring jobs (active jobs with deadline within the next 3 days)
+    const now = new Date();
+    const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+    const expiringJobsCount = myJobs.filter(j => 
+      j.status === 'active' && 
+      j.deadline && 
+      new Date(j.deadline) <= threeDaysFromNow
+    ).length;
+
+    // 5. AI performance insight (Calculate actual match quality improvement)
     const avgMatchScoreResult = await Application.aggregate([
       { $match: { job: { $in: myJobIds }, matchScore: { $exists: true } } },
       { $group: { _id: null, avgScore: { $avg: '$matchScore' } } }
     ]);
     const currentAvg = avgMatchScoreResult.length > 0 ? Math.round(avgMatchScoreResult[0].avgScore) : 0;
+
+    // Calculate actual improvement by comparing recent applications (last 7 days) with older ones
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const [recentAvgResult, olderAvgResult] = await Promise.all([
+      Application.aggregate([
+        { 
+          $match: { 
+            job: { $in: myJobIds }, 
+            matchScore: { $exists: true },
+            createdAt: { $gte: sevenDaysAgo }
+          } 
+        },
+        { $group: { _id: null, avgScore: { $avg: '$matchScore' } } }
+      ]),
+      Application.aggregate([
+        { 
+          $match: { 
+            job: { $in: myJobIds }, 
+            matchScore: { $exists: true },
+            createdAt: { $lt: sevenDaysAgo }
+          } 
+        },
+        { $group: { _id: null, avgScore: { $avg: '$matchScore' } } }
+      ])
+    ]);
+
+    const recentAvg = recentAvgResult.length > 0 ? Math.round(recentAvgResult[0].avgScore) : 0;
+    const olderAvg = olderAvgResult.length > 0 ? Math.round(olderAvgResult[0].avgScore) : 0;
+
+    let matchImprovement = 0;
+    if (olderAvg > 0) {
+      matchImprovement = Math.max(0, recentAvg - olderAvg);
+    }
     
     res.status(200).json({
       success: true,
@@ -356,10 +412,10 @@ export const getDashboardSummary = async (req, res) => {
           pendingApplicants,
           shortlistedCount,
           interviewsPending,
-          expiringJobs: 0 // Mocked for now
+          expiringJobs: expiringJobsCount
         },
         aiInsight: {
-          matchImprovement: currentAvg > 0 ? 15 : 0, // Placeholder logic
+          matchImprovement,
           currentAvg
         }
       }
@@ -369,9 +425,6 @@ export const getDashboardSummary = async (req, res) => {
   }
 };
 
-// @desc    Export recruiter data as CSV
-// @route   GET /api/v1/recruiter/export-data
-// @access  Private/Recruiter
 export const exportRecruiterData = async (req, res) => {
   try {
     const userId = req.userId;

@@ -88,16 +88,6 @@ export const register = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("--- REGISTRATION ERROR STACK ---");
-    console.error(error);
-    console.error("---------------------------------");
-    
-    // Check if it's a Mongoose validation error
-    if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map(val => val.message);
-      return res.status(400).json({ message: messages.join(', ') });
-    }
-
     res.status(500).json({ 
       success: false,
       message: error.message || 'Internal Server Error during registration',
@@ -132,6 +122,35 @@ export const verifyEmail = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+// --- RESEND OTP ---
+export const resendOTP = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.otp = otp;
+    user.otpExpires = Date.now() + 15 * 60 * 1000;
+    await user.save();
+
+    await sendEmail({
+      email: user.email,
+      subject: 'Verify your account',
+      html: `<h1>Your OTP is: ${otp}</h1><p>It expires in 15 minutes.</p>`
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'OTP resent successfully'
+    });
+  } catch (error) {
+    console.error("Resend OTP Error:", error.message);
+    res.status(500).json({ success: false, message: 'Failed to send verification email: ' + error.message });
   }
 };
 

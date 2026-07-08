@@ -8,7 +8,8 @@ import useAuthStore from '../../store/authStore';
 const VerifyEmail = () => {
   const [otp, setOtp] = useState('');
   const [otpLoading, setOtpLoading] = useState(false);
-  const { verifyEmail, user, isAuthenticated } = useAuthStore();
+  const [resending, setResending] = useState(false);
+  const { verifyEmail, resendOTP, user, isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
 
   // Redirect if already authenticated and verified
@@ -32,6 +33,18 @@ const VerifyEmail = () => {
       navigate(updatedUser?.role === 'recruiter' ? '/recruiter/dashboard' : '/student/dashboard');
     } else {
       toast.error(message || 'Verification failed');
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setResending(true);
+    const { success, message } = await resendOTP();
+    setResending(false);
+    
+    if (success) {
+      toast.success('A new OTP has been sent to your email.');
+    } else {
+      toast.error(message || 'Failed to resend OTP');
     }
   };
 
@@ -84,7 +97,15 @@ const VerifyEmail = () => {
 
         <div className="mt-8 pt-6 border-t border-slate-700/50 flex flex-col items-center gap-4">
           <p className="text-sm text-slate-500">
-            Didn't receive the code? <button className="text-brand-400 hover:text-brand-300 font-medium transition-colors">Resend OTP</button>
+            Didn't receive the code?{' '}
+            <button 
+              type="button"
+              onClick={handleResendOtp}
+              disabled={resending}
+              className="text-brand-400 hover:text-brand-300 font-medium transition-colors disabled:opacity-50"
+            >
+              {resending ? 'Sending...' : 'Resend OTP'}
+            </button>
           </p>
           <button 
             onClick={() => navigate('/login')} 

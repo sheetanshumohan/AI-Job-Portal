@@ -33,7 +33,7 @@ const JobCard = ({ job, isSaved, onSave }) => {
       className="glass-card p-6 border border-slate-700/50 hover:border-brand-500/40 transition-all group relative overflow-hidden flex flex-col h-full cursor-pointer"
     >
       {/* Link Overlay */}
-      <Link to={`/student/jobs/${job.id || job._id}`} className="absolute inset-0 z-10" />
+      <Link to={`/student/jobs/${job.id || job._id}`} target="_blank" rel="noopener noreferrer" className="absolute inset-0 z-10" />
 
       {/* Match Score Indicator (Top Right) */}
       <div className={`absolute top-0 right-0 px-4 py-2 rounded-bl-3xl border-l border-b flex items-center gap-2 font-bold text-[10px] tracking-widest uppercase transition-colors z-20 ${
@@ -45,7 +45,7 @@ const JobCard = ({ job, isSaved, onSave }) => {
         {job.matchScore || 0}% Match
       </div>
 
-      <div className="flex-1 space-y-5 relative z-20">
+      <div className="flex-1 space-y-5 relative z-0">
           <div className="flex-1 pr-12">
             <h3 className="text-white font-bold leading-tight group-hover:text-brand-400 transition-colors line-clamp-1">{job.title}</h3>
             <p className="text-brand-400/80 text-xs font-semibold mt-1 tracking-widers">{job.company}</p>
@@ -116,9 +116,11 @@ const JobCard = ({ job, isSaved, onSave }) => {
           </button>
           <Link 
             to={`/student/jobs/${job.id || job._id}`}
+            target="_blank"
+            rel="noopener noreferrer"
             className="flex-1 flex items-center justify-center gap-2 py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg hover:shadow-brand-600/20 group/apply"
           >
-             Apply Now <ArrowRight size={16} className="group-hover/apply:translate-x-1 transition-transform" />
+             View Details <ArrowRight size={16} className="group-hover/apply:translate-x-1 transition-transform" />
           </Link>
         </div>
       </div>

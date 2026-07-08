@@ -7,12 +7,7 @@ export const generateTokenAndSetCookie = (res, userId) => {
 
   const cookieExpireDays = parseInt(process.env.COOKIE_EXPIRE) || 7;
 
-  res.cookie('token', token, {
-    httpOnly: true, // Prevent XSS
-    secure: process.env.NODE_ENV === 'production', 
-    sameSite: 'strict', // Prevent CSRF
-    maxAge: cookieExpireDays * 24 * 60 * 60 * 1000,
-  });
+  res.cookie('token', token);
 
   return token;
 };

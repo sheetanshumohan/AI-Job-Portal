@@ -115,6 +115,22 @@ const useAuthStore = create(
         }
       },
 
+      // Resend OTP action
+      resendOTP: async () => {
+        set({ isLoading: true });
+        try {
+          const response = await api.post('/auth/resend-otp');
+          set({ isLoading: false });
+          return { success: true, message: response.data.message };
+        } catch (error) {
+          set({ isLoading: false });
+          return { 
+            success: false, 
+            message: error.response?.data?.message || 'Resending OTP failed' 
+          };
+        }
+      },
+
       // Forgot Password action
       forgotPassword: async (email, role) => {
         set({ isLoading: true });
@@ -149,8 +165,11 @@ const useAuthStore = create(
 
       // Logout action
       logout: () => {
+        const wasAuthenticated = get().isAuthenticated;
         set({ user: null, token: null, isAuthenticated: false });
-        toast.success('Logged out successfully');
+        if (wasAuthenticated) {
+          toast.success('Logged out successfully');
+        }
         api.post('/auth/logout').catch(console.error); // Optional API logout
       },
       // Update user profile action

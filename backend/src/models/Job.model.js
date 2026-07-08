@@ -85,6 +85,12 @@ const jobSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
+// Pre-save hook to automatically close jobs whose deadline has passed
+jobSchema.pre('save',function() {
+  if (this.deadline && this.deadline < new Date()) {
+    this.status = 'closed';
+  }
+});
 
 const Job = mongoose.model('Job', jobSchema);
 

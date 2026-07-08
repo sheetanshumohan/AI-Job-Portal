@@ -195,6 +195,8 @@ const ApplicationCard = ({ application, onWithdraw }) => {
       <div className="flex flex-col sm:flex-row gap-3 mt-6 pt-6 border-t border-slate-800/50">
         <Link 
           to={`/student/jobs/${application.jobId}`}
+          target="_blank"
+          rel="noopener noreferrer"
           className="flex-1 flex items-center justify-center gap-2 py-3 bg-slate-800/50 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all border border-slate-700/50"
         >
           <Eye size={16} /> View Details

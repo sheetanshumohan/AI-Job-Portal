@@ -4,6 +4,7 @@ import {
   login, 
   logout, 
   verifyEmail, 
+  resendOTP,
   forgotPassword, 
   resetPassword,
   googleLogin,
@@ -20,6 +21,7 @@ router.post('/login', login);
 router.post('/google', googleLogin);
 router.post('/logout', logout);
 router.post('/verify-email', protect, verifyEmail); 
+router.post('/resend-otp', protect, resendOTP);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
 

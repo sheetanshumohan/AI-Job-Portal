@@ -12,9 +12,7 @@ import sendEmail from '../utils/sendEmail.js';
 import Notification from '../models/Notification.model.js';
 import Interview from '../models/Interview.model.js';
 
-// @desc    Upload resume directly to Cloudinary
-// @route   POST /api/v1/applications/upload-resume
-// @access  Private/Student
+
 export const uploadResumeSingle = async (req, res) => {
   try {
     if (!req.file) {
@@ -51,9 +49,7 @@ export const uploadResumeSingle = async (req, res) => {
   }
 };
 
-// @desc    Apply for a job
-// @route   POST /api/v1/applications/apply/:jobId
-// @access  Private/Student
+
 export const applyJob = async (req, res) => {
   try {
     const { jobId } = req.params;
@@ -64,6 +60,14 @@ export const applyJob = async (req, res) => {
       .populate('postedBy', 'email recruiterName');
     if (!job) {
       return res.status(404).json({ success: false, message: 'Job not found' });
+    }
+
+    if (job.status !== 'active') {
+      return res.status(400).json({ success: false, message: 'This job posting is no longer active' });
+    }
+
+    if (job.deadline && new Date(job.deadline) < new Date()) {
+      return res.status(400).json({ success: false, message: 'This job posting has expired and is no longer accepting applications' });
     }
 
     // Check if user has already applied
@@ -200,7 +204,7 @@ export const applyJob = async (req, res) => {
                 <p style="margin: 5px 0 0 0;"><strong>Match Score:</strong> <span style="font-size: 18px; color: #2ecc71; font-weight: bold;">${matchScore}%</span></p>
               </div>
               <p>Please log in to your dashboard to review full profile and resume.</p>
-              <p style="color: #7f8c8d; font-size: 12px; margin-top: 30px;">This is an automated notification from HireSphere AI.</p>
+              <p style="color: #7f8c8d; font-size: 12px; margin-top: 30px;">This is an automated notification from AI Job Portal.</p>
             </div>
           `
         });
@@ -234,9 +238,7 @@ export const applyJob = async (req, res) => {
   }
 };
 
-// @desc    Get all applications for a student
-// @route   GET /api/v1/applications
-// @access  Private/Student
+
 export const getStudentApplications = async (req, res) => {
   try {
     const userId = req.userId;
@@ -277,9 +279,7 @@ export const getStudentApplications = async (req, res) => {
   }
 };
 
-// @desc    Withdraw an application
-// @route   DELETE /api/v1/applications/:id
-// @access  Private/Student
+
 export const withdrawApplication = async (req, res) => {
   try {
     const { id } = req.params;
@@ -323,9 +323,6 @@ export const withdrawApplication = async (req, res) => {
 };
 
 
-// @desc    Get all applicants for a specific job
-// @route   GET /api/v1/applications/job/:jobId
-// @access  Private/Recruiter
 export const getJobApplicants = async (req, res) => {
   try {
     const { jobId } = req.params;
@@ -382,9 +379,7 @@ export const getJobApplicants = async (req, res) => {
   }
 };
 
-// @desc    Update application status
-// @route   PATCH /api/v1/applications/:id/status
-// @access  Private/Recruiter
+
 export const updateApplicationStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -555,9 +550,7 @@ export const updateApplicationStatus = async (req, res) => {
   }
 };
 
-// @desc    Update application notes
-// @route   PATCH /api/v1/applications/:id/notes
-// @access  Private/Recruiter
+
 export const updateApplicationNotes = async (req, res) => {
   try {
     const { id } = req.params;
@@ -587,9 +580,7 @@ export const updateApplicationNotes = async (req, res) => {
   }
 };
 
-// @desc    Delete an application (Recruiter side)
-// @route   DELETE /api/v1/applications/:id/recruiter
-// @access  Private/Recruiter
+
 export const deleteApplicationByRecruiter = async (req, res) => {
   try {
     const { id } = req.params;

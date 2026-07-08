@@ -64,6 +64,8 @@ const SimilarJobsSection = ({ currentJobId }) => {
           <Link 
             key={job._id || job.id} 
             to={`/student/jobs/${job._id || job.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
             className="glass-card p-6 border border-slate-700/50 hover:border-brand-500/30 transition-all group"
           >
             <div className="flex items-center gap-4 mb-4">

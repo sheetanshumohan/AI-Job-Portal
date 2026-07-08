@@ -115,7 +115,7 @@ export const completeInterview = async (req, res) => {
 
     // Calculate overall score
     const totalScore = interview.questions.reduce((sum, q) => sum + (q.score || 0), 0);
-    interview.overallScore = (totalScore / interview.questions.length).toFixed(1);
+    interview.overallScore = Number((totalScore / interview.questions.length).toFixed(1));
     
     // Generate overall feedback
     interview.overallFeedback = await generateOverallInterviewFeedback(interview.questions);

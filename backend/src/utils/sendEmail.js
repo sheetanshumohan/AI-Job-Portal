@@ -10,7 +10,7 @@ const sendEmail = async (options) => {
   });
 
   const mailOptions = {
-    from: '"AI Resume Analyzer" <no-reply@airesume.com>',
+    from: `"AI Resume Analyzer" <${process.env.EMAIL_USER}>`,
     to: options.email,
     subject: options.subject,
     text: options.message,
