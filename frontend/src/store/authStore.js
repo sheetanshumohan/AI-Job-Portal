@@ -10,13 +10,14 @@ const useAuthStore = create(
       token: null,
       isAuthenticated: false,
       isLoading: false,
+      isCheckingAuth: true,
       
       // Set auth state manually
       setAuth: (user, token) => set({ user, token, isAuthenticated: !!user }),
 
       // Check Authentication (on mount)
       checkAuth: async () => {
-        set({ isLoading: true });
+        set({ isCheckingAuth: true });
         try {
           const response = await api.get('/auth/me');
           const { user, needsVerification } = response.data.data || response.data; // Handle different response formats if necessary
@@ -25,11 +26,11 @@ const useAuthStore = create(
           set({ 
             user: user || response.data.data.user, 
             isAuthenticated: !actualNeedsVerification, 
-            isLoading: false 
+            isCheckingAuth: false 
           });
           return { success: true, needsVerification: actualNeedsVerification };
         } catch (error) {
-          set({ user: null, isAuthenticated: false, isLoading: false, token: null });
+          set({ user: null, isAuthenticated: false, isCheckingAuth: false, token: null });
           return { success: false };
         }
       },
