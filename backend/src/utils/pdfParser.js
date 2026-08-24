@@ -1,4 +1,4 @@
-import pdf from 'pdf-parse';
+import { PDFParse } from 'pdf-parse';
 
 export const extractTextFromResumeUrl = async (resumeUrl) => {
   if (!resumeUrl) {
@@ -14,18 +14,23 @@ export const extractTextFromResumeUrl = async (resumeUrl) => {
     }
 
     const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
     
     console.log('Parsing resume PDF...');
-    const pdfData = await pdf(buffer);
-    if (pdfData && pdfData.text) {
-      return pdfData.text.trim();
+    const parser = new PDFParse({ data: arrayBuffer });
+    try {
+      const pdfData = await parser.getText();
+      if (pdfData && pdfData.text) {
+        return pdfData.text.trim();
+      }
+      return null;
+    } finally {
+      await parser.destroy();
     }
-    return null;
   } catch (error) {
     console.error('Error parsing resume PDF:', error);
     return null;
   }
 };
+
 
 
