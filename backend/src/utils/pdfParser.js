@@ -1,4 +1,4 @@
-import { PDFParse } from 'pdf-parse';
+import pdf from 'pdf-parse';
 
 export const extractTextFromResumeUrl = async (resumeUrl) => {
   if (!resumeUrl) {
@@ -14,22 +14,18 @@ export const extractTextFromResumeUrl = async (resumeUrl) => {
     }
 
     const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
     
     console.log('Parsing resume PDF...');
-    const parser = new PDFParse({ data: arrayBuffer });
-    try {
-      const pdfData = await parser.getText();
-      if (pdfData && pdfData.text) {
-        // Clean up whitespace/newlines slightly but preserve structure
-        return pdfData.text.trim();
-      }
-      return null;
-    } finally {
-      await parser.destroy();
+    const pdfData = await pdf(buffer);
+    if (pdfData && pdfData.text) {
+      return pdfData.text.trim();
     }
+    return null;
   } catch (error) {
     console.error('Error parsing resume PDF:', error);
     return null;
   }
 };
+
 
