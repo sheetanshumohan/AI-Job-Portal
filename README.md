@@ -8,7 +8,8 @@
 [![Tailwind CSS](https://img.shields.io/badge/Styling-Tailwind%20CSS-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![Google Gemini](https://img.shields.io/badge/AI Engine-Google%20Gemini-8E44AD?logo=google-gemini&logoColor=white)](https://deepmind.google/technologies/gemini/)
 [![OpenAI](https://img.shields.io/badge/AI Engine-OpenAI%20GPT--4o-00A67E?logo=openai&logoColor=white)](https://openai.com/)
-[![Deployment](https://img.shields.io/badge/Deployed--on-Vercel-000000?logo=vercel&logoColor=white)](https://vercel.com/)
+[![Frontend Deployment](https://img.shields.io/badge/Frontend--Hosted--on-Vercel-000000?logo=vercel&logoColor=white)](https://ai-job-portal-d5kp.vercel.app/)
+[![Backend Deployment](https://img.shields.io/badge/Backend--Hosted--on-Render-46E3B7?logo=render&logoColor=white)](https://ai-job-portal-6c5n.onrender.com)
 
 The **AI Resume Analyzer & Job Portal** is an end-to-end recruitment platform designed to eliminate hiring friction for recruiters and empower job seekers with instant feedback. Driven by **Google Gemini AI** and **OpenAI GPT models**, the platform automatically parses resumes, ranks applicants based on semantic job alignment, generates tailored mock interview simulations, and delivers rich analytics for hiring managers.
 
@@ -16,10 +17,10 @@ The **AI Resume Analyzer & Job Portal** is an end-to-end recruitment platform de
 
 ## 🌐 Live Deployments
 
-| Service | Live URL | Status |
-| :--- | :--- | :--- |
-| **Frontend Application** | [https://ai-resume-analyzer-frontend-new.vercel.app](https://ai-resume-analyzer-frontend-new.vercel.app) | ![Active](https://img.shields.io/badge/Status-Live-brightgreen) |
-| **Backend REST API** | [https://ai-resume-analyzer-backend-new.vercel.app](https://ai-resume-analyzer-backend-new.vercel.app) | ![Active](https://img.shields.io/badge/Status-Live-brightgreen) |
+| Service | Live URL | Hosting Platform | Status |
+| :--- | :--- | :--- | :--- |
+| **Frontend Application** | [https://ai-job-portal-d5kp.vercel.app](https://ai-job-portal-d5kp.vercel.app/) | **Vercel** | ![Active](https://img.shields.io/badge/Status-Live-brightgreen) |
+| **Backend REST API** | [https://ai-job-portal-6c5n.onrender.com](https://ai-job-portal-6c5n.onrender.com) | **Render** | ![Active](https://img.shields.io/badge/Status-Live-brightgreen) |
 
 ---
 
@@ -54,7 +55,7 @@ graph TD
     end
 
     subgraph API & Gateway Layer
-        D["Vercel Serverless / Node.js Router"]
+        D["Render Web Service / Node.js Router"]
         E["Express Middleware Engine"]
         F["JWT / OAuth 2.0 Auth Guard"]
     end
@@ -90,7 +91,7 @@ sequenceDiagram
     autonumber
     actor Candidate as Candidate / Student
     participant UI as Frontend App (React)
-    participant API as Express API Server
+    participant API as Express API Server (Render)
     participant Storage as Cloudinary CDN
     participant Parser as PDF Parser Middleware
     participant AI as Gemini / OpenAI LLM
@@ -124,7 +125,7 @@ sequenceDiagram
     autonumber
     actor Candidate as Student / Interviewee
     participant UI as React Interview Interface
-    participant API as Backend Interview Controller
+    participant API as Backend Interview Controller (Render)
     participant AI as AI Question Engine
     participant DB as MongoDB Database
 
@@ -192,7 +193,7 @@ flowchart TD
 | **File Storage & Parsing** | `Multer` + `Cloudinary` + `pdf-parse` | In-memory multipart parsing, PDF buffer text extraction, cloud storage for student resume PDFs and avatar photos. |
 | **Authentication & Mail** | `JWT` + `@react-oauth/google` + `Nodemailer` | HttpOnly cookie / Bearer JWT access control, Google OAuth 2.0 authentication integration, Nodemailer SMTP email verification and password resets. |
 | **Security & Utilities** | `Helmet` + `CORS` + `bcryptjs` | Request header sanitization, strict CORS policy configuration, salted password hashing. |
-| **Deployment Engine** | `Vercel` | Frontend SPA host & Node.js serverless functions deployment via customized `vercel.json` rewrites. |
+| **Deployment Infrastructure** | `Vercel` (Frontend) & `Render` (Backend) | Frontend SPA client hosted on Vercel; Node.js Express REST API hosted as a cloud Web Service on Render. |
 
 ---
 
@@ -200,7 +201,7 @@ flowchart TD
 
 ```
 AI-Resume-Analyzer-Project/
-├── backend/                              # Express Node.js Backend API Application
+├── backend/                              # Express Node.js Backend API Application (Hosted on Render)
 │   ├── src/
 │   │   ├── config/                       # Core Configuration Layer
 │   │   │   ├── db.js                     # MongoDB connection pool initializer
@@ -238,10 +239,9 @@ AI-Resume-Analyzer-Project/
 │   │   │   └── sendEmail.js              # Nodemailer email verification dispatch helper
 │   │   ├── app.js                        # Express Application instance & global middleware
 │   │   └── index.js                      # Server startup entry point
-│   ├── package.json                      # Backend dependencies & scripts
-│   └── vercel.json                       # Serverless routing & deployment configuration
+│   └── package.json                      # Backend dependencies & scripts
 │
-├── frontend/                             # React 18 + Vite Web Client
+├── frontend/                             # React 18 + Vite Web Client (Hosted on Vercel)
 │   ├── public/                           # Static Web Assets & Favicon
 │   ├── src/
 │   │   ├── components/                   # Reusable Visual Components
@@ -452,8 +452,8 @@ During a candidate mock interview:
 ```env
 # Node Environment & Server Config
 PORT=5000
-NODE_ENV=development
-FRONTEND_URL=http://localhost:5173
+NODE_ENV=production
+FRONTEND_URL=https://ai-job-portal-d5kp.vercel.app
 
 # Database Connection
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/ai-job-portal?retryWrites=true&w=majority
@@ -484,8 +484,8 @@ OPENAI_API_KEY=your_openai_api_key
 ### Frontend Setup (`frontend/.env`)
 
 ```env
-# API Base Endpoint URL
-VITE_API_BASE_URL=http://localhost:5000/api/v1
+# API Base Endpoint URL (Render Backend Production URL)
+VITE_API_BASE_URL=https://ai-job-portal-6c5n.onrender.com/api/v1
 
 # Google OAuth Client ID for React Button
 VITE_GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
@@ -522,7 +522,7 @@ cp .env.example .env
 # Launch backend in development mode with nodemon
 npm run dev
 ```
-*The backend API server will run on `http://localhost:5000`.*
+*The backend API server will run on `http://localhost:5000` locally.*
 
 ### Step 3: Frontend Setup
 ```bash
@@ -539,36 +539,25 @@ cp .env.example .env
 # Launch Vite development server
 npm run dev
 ```
-*The frontend React client will launch on `http://localhost:5173`.*
+*The frontend React client will launch on `http://localhost:5173` locally.*
 
 ---
 
-## ☁️ Deployment Architecture (Vercel Serverless)
+## ☁️ Deployment Architecture (Vercel & Render)
 
-Both application sub-packages are pre-configured for seamless automated deployment on **Vercel**:
+The architecture is deployed across dedicated cloud infrastructure tailored for optimal performance:
 
-### Backend (`backend/vercel.json`)
-Converts the Express Application instance into serverless lambdas:
-```json
-{
-  "version": 2,
-  "builds": [
-    {
-      "src": "src/app.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "src/app.js"
-    }
-  ]
-}
-```
+### 1. Backend Service (Render Web Service)
+The Node.js + Express API server runs as a continuous cloud **Web Service** on [Render](https://render.com/):
+- **Build Command**: `npm install`
+- **Start Command**: `npm start` (Runs `node src/index.js`)
+- **Live Endpoint**: [https://ai-job-portal-6c5n.onrender.com](https://ai-job-portal-6c5n.onrender.com)
+- Environment variables (`MONGODB_URI`, `JWT_SECRET`, `GEMINI_API_KEY`, `CLOUDINARY_*`, etc.) are configured directly in Render Environment Settings.
 
-### Frontend (`frontend/vercel.json`)
-Handles Single Page Application (SPA) Client-Side Rewrites:
+### 2. Frontend Application (Vercel SPA)
+The React + Vite single-page application is hosted on [Vercel](https://vercel.com/):
+- **Live URL**: [https://ai-job-portal-d5kp.vercel.app](https://ai-job-portal-d5kp.vercel.app/)
+- **Configuration (`frontend/vercel.json`)**: Configured with client-side route rewrites for React Router DOM:
 ```json
 {
   "rewrites": [
