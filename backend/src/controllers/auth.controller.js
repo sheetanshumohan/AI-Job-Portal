@@ -314,11 +314,19 @@ export const forgotPassword = async (req, res) => {
     user.resetPasswordExpires = Date.now() + 10 * 60 * 1000; // 10 mins
     await user.save();
 
-    await sendEmail({
-      email: user.email,
-      subject: 'Password Reset OTP',
-      html: `<h1>Reset OTP: ${resetOtp}</h1>`
-    });
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: 'Password Reset OTP',
+        html: `<h1>Reset OTP: ${resetOtp}</h1>`
+      });
+    } catch (emailError) {
+      console.error("Failed to send reset password email:", emailError.message);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send email. Please verify RESEND_API_KEY environment variable.'
+      });
+    }
 
     res.status(200).json({ success: true, message: 'OTP sent to email' });
   } catch (error) {
