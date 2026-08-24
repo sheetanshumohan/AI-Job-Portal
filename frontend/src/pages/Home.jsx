@@ -263,7 +263,7 @@ const Home = () => {
       <footer className="border-t border-slate-800 bg-background pt-16 pb-8 px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div className="col-span-1 md:col-span-2">
-            <Link gap-2 className="flex items-center gap-3 mb-4">
+            <Link className="flex items-center gap-3 mb-4">
               <div className="bg-brand-500/20 p-2 rounded-xl"><Briefcase className="h-5 w-5 text-brand-400" /></div>
               <span className="font-heading font-bold text-xl tracking-tight text-white">AI Job Portal</span>
             </Link>
