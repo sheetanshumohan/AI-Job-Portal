@@ -165,13 +165,22 @@ const useAuthStore = create(
       },
 
       // Logout action
-      logout: () => {
+      logout: async () => {
         const wasAuthenticated = get().isAuthenticated;
         set({ user: null, token: null, isAuthenticated: false });
+        try {
+          localStorage.removeItem('auth-storage');
+        } catch (e) {
+          console.error(e);
+        }
         if (wasAuthenticated) {
           toast.success('Logged out successfully');
         }
-        api.post('/auth/logout').catch(console.error); // Optional API logout
+        try {
+          await api.post('/auth/logout');
+        } catch (err) {
+          console.error('API logout error:', err);
+        }
       },
       // Update user profile action
       updateUser: async (profileData) => {
